@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pixel Art Simulator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+
+    h1 {
+      margin-top: 20px;
+    }
+
+    #controls {
+      margin: 20px 0;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+    }
+
+    #controls button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      width: 40px;
+      height: 40px;
+      padding: 0;
+    }
+
+    #controls button img {
+      width: 32px;
+      height: 32px;
+    }
+
+    #canvas-container {
+      display: grid;
+      grid-template-columns: repeat(50, 10px); /* 50 клеток по 10px */
+      gap: 1px;
+      justify-content: center;
+      margin: 20px auto;
+      background-color: #ccc;
+    }
+
+    .pixel {
+      width: 10px;
+      height: 10px;
+      background-color: white;
+      cursor: pointer;
+    }
+
+    input[type="color"] {
+      border: none;
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+    }
+
+    #save-button {
+      padding: 10px 15px;
+      font-size: 1rem;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #save-button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <h1>Pixel Art Simulator</h1>
+
+  <!-- Панель управления -->
+  <div id="controls">
+    <button id="pencil-btn" title="Карандаш">
+      <img src="icons/pencil.png" alt="Карандаш">
+    </button>
+    <button id="eraser-btn" title="Ластик">
+      <img src="icons/eraser.png" alt="Ластик">
+    </button>
+    <input type="color" id="color-picker" title="Выбрать цвет">
+    <button id="eyedropper-btn" title="Пипетка">
+      <img src="icons/eyedropper.png" alt="Пипетка">
+    </button>
+    <button id="clear-btn" title="Очистить холст">
+      <img src="icons/clear.png" alt="Очистить холст">
+    </button>
+  </div>
+
+  <!-- Холст -->
+  <div id="canvas-container"></div>
+
+  <!-- Кнопка сохранения -->
+  <button id="save-button">Сохранить рисунок</button>
+
+  <script>
+    // Создание сетки 50x50
+    const canvas = document.getElementById("canvas-container");
+    const gridSize = 50; // 50x50
+    for (let i = 0; i < gridSize * gridSize; i++) {
+      const pixel = document.createElement("div");
+      pixel.className = "pixel";
+      canvas.appendChild(pixel);
+    }
+
+    // Переменные для инструмента
+    let currentColor = "#000000"; // Цвет по умолчанию
+    let tool = "pencil"; // Текущий инструмент (pencil, eraser, eyedropper)
+    let isDrawing = false; // Флаг для непрерывного рисования
+
+    // Выбор цвета
+    const colorPicker = document.getElementById("color-picker");
+    colorPicker.addEventListener("input", (e) => {
+      currentColor = e.target.value;
+    });
+
+    // Инструменты
+    document.getElementById("pencil-btn").addEventListener("click", () => (tool = "pencil"));
+    document.getElementById("eraser-btn").addEventListener("click", () => (tool = "eraser"));
+    document.getElementById("eyedropper-btn").addEventListener("click", () => (tool = "eyedropper"));
+
+    // Очистка холста
+    document.getElementById("clear-btn").addEventListener("click", () => {
+      document.querySelectorAll(".pixel").forEach((pixel) => (pixel.style.backgroundColor = "white"));
+    });
+
+    // Рисование и стирание
+    canvas.addEventListener("mousedown", (e) => {
+      isDrawing = true;
+      handleDrawing(e);
+    });
+
+    canvas.addEventListener("mousemove", (e) => {
+      if (isDrawing) handleDrawing(e);
+    });
+
+    canvas.addEventListener("mouseup", () => (isDrawing = false));
+    canvas.addEventListener("mouseleave", () => (isDrawing = false));
+
+    function handleDrawing(e) {
+      if (e.target.classList.contains("pixel")) {
+        if (tool === "pencil") {
+          e.target.style.backgroundColor = currentColor;
+        } else if (tool === "eraser") {
+          e.target.style.backgroundColor = "white";
+        } else if (tool === "eyedropper") {
+          currentColor = e.target.style.backgroundColor || "#ffffff";
+          colorPicker.value = currentColor; // Обновление палитры
+        }
+      }
+    }
+
+    // Сохранение рисунка
+    document.getElementById("save-button").addEventListener("click", () => {
+      html2canvas(canvas, {
+        backgroundColor: "#ffffff", // Указываем цвет фона
+        width: canvas.offsetWidth,
+        height: canvas.offsetHeight,
+      }).then((canvasImage) => {
+        const link = document.createElement("a");
+        link.download = "pixel-art.png";
+        link.href = canvasImage.toDataURL("image/png");
+        link.click();
+      });
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+</body>
+</html>
